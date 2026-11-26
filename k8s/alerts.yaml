@@ -1,0 +1,21 @@
+# Alert rules. Fired alerts show up in Alertmanager (our stand-in for PagerDuty).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: hello-devops
+spec:
+  groups:
+    - name: hello-devops
+      rules:
+        - alert: HelloDevopsDown
+          expr: absent(up{job="hello-devops"} == 1)
+          for: 1m
+          labels: { severity: critical }
+          annotations:
+            summary: "hello-devops has no healthy pods"
+        - alert: HelloDevopsErrors
+          expr: sum(rate(http_requests_total{status=~"5.."}[5m])) > 0.1
+          for: 2m
+          labels: { severity: warning }
+          annotations:
+            summary: "hello-devops is returning 5xx errors"

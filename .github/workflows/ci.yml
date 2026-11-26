@@ -1,0 +1,42 @@
+# BUILD + TEST stage: runs on every pull request and every push to main.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths-ignore: ["k8s/**", "**.md"]   # deploy-config bumps don't need a rebuild
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - name: Lint (code quality gate)
+        run: ruff check .
+      - name: Unit tests
+        run: pytest -v
+
+  build-and-scan:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build container image
+        run: docker build -t hello-devops:${{ github.sha }} .
+      - name: Security scan (fail on CRITICAL vulnerabilities)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: hello-devops:${{ github.sha }}
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+      - name: Smoke test the container
+        run: |
+          docker run -d -p 8000:8000 --name smoke hello-devops:${{ github.sha }}
+          sleep 3
+          curl --fail http://localhost:8000/healthz

@@ -1,0 +1,9 @@
+.git
+.github
+infra
+k8s
+argocd
+tests
+*.md
+__pycache__
+.venv

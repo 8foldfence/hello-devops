@@ -1,0 +1,42 @@
+# Grafana picks up any ConfigMap labelled grafana_dashboard=1 and loads it as a dashboard.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hello-devops-dashboard
+  labels:
+    grafana_dashboard: "1"
+data:
+  hello-devops.json: |
+    {
+      "title": "Hello DevOps",
+      "uid": "hello-devops",
+      "refresh": "10s",
+      "time": { "from": "now-30m", "to": "now" },
+      "schemaVersion": 39,
+      "panels": [
+        {
+          "type": "stat", "title": "Healthy pods",
+          "gridPos": { "x": 0, "y": 0, "w": 6, "h": 6 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [ { "expr": "sum(up{job=\"hello-devops\"})" } ]
+        },
+        {
+          "type": "stat", "title": "Button clicks (total)",
+          "gridPos": { "x": 6, "y": 0, "w": 6, "h": 6 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [ { "expr": "sum(button_clicks_total)" } ]
+        },
+        {
+          "type": "timeseries", "title": "Requests per second by page",
+          "gridPos": { "x": 0, "y": 6, "w": 12, "h": 9 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [ { "expr": "sum by (path) (rate(http_requests_total[1m]))", "legendFormat": "{{path}}" } ]
+        },
+        {
+          "type": "timeseries", "title": "Running version",
+          "gridPos": { "x": 12, "y": 0, "w": 12, "h": 15 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [ { "expr": "count by (image) (kube_pod_container_info{namespace=\"hello-devops\"})", "legendFormat": "{{image}}" } ]
+        }
+      ]
+    }

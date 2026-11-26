@@ -1,0 +1,23 @@
+# kube-prometheus-stack settings, trimmed for a laptop.
+grafana:
+  adminPassword: admin
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL      # pick up our app's dashboard ConfigMap
+
+prometheus:
+  prometheusSpec:
+    # Scrape every ServiceMonitor / load every alert rule, not just Helm-labelled ones
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    retention: 2d
+    resources:
+      requests: { memory: 256Mi }
+
+# These control-plane components aren't reachable in kind; skip them to avoid red targets
+kubeEtcd: { enabled: false }
+kubeScheduler: { enabled: false }
+kubeControllerManager: { enabled: false }
+kubeProxy: { enabled: false }

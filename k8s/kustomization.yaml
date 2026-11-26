@@ -1,0 +1,15 @@
+# The release pipeline edits newTag below. Argo CD watches this folder.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: hello-devops
+resources:
+  - namespace.yaml
+  - deployment.yaml
+  - service.yaml
+  - servicemonitor.yaml
+  - alerts.yaml
+  - dashboard.yaml
+images:
+  - name: hello-devops
+    newName: ghcr.io/8foldfence/hello-devops
+    newTag: v0.0.0
